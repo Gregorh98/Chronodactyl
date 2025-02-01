@@ -57,7 +57,7 @@ class Finger
     }
 };
 
-Finger thumb_finger(0, 0, 130);
+Finger thumb_finger(0, 60, 120);
 Finger thumb_knuckle(5, 0, 120, true);
 
 Finger index_finger(1, 0, 180);
@@ -65,6 +65,7 @@ Finger middle_finger(2, 0, 180);
 Finger ring_finger(3, 0, 180);
 Finger pinky_finger(4, 0, 180, true);
 
+bool gripping;
 
 void setup() {
     Serial.begin(115200);
@@ -72,6 +73,9 @@ void setup() {
 
     pwm.begin();
     pwm.setPWMFreq(50);
+    release();
+    gripping = false;
+    
 }
 
 
@@ -212,7 +216,15 @@ void loop() {
                 Serial.println("Invalid binary input! Use a number between 0-31.");
             }
         } else {
-            release();
+            if (gripping == true)
+            {
+              release();
+              gripping = false;
+            }else
+            {
+              grip();
+              gripping = true;
+            }
             Serial.println("Unknown command! Use: grip, release, wave, point, fist, mexican_wave");
         }
     }
