@@ -136,19 +136,37 @@ void quarter(int q)
 void hour() {
     release();
     delay(1000);
-    Finger fingers[] = {thumb_finger, thumb_knuckle, index_finger, middle_finger, ring_finger, pinky_finger};
-    for (int i = 0; i < 6; i++) {
-        fingers[i].retract();
+
+    // Array of finger pairs (thumb moves together, others move individually)
+    Finger fingerPairs[][2] = {
+        {thumb_finger, thumb_knuckle},
+        {index_finger, index_finger}, // Single fingers still need a second reference
+        {middle_finger, middle_finger},
+        {ring_finger, ring_finger},
+        {pinky_finger, pinky_finger}
+    };
+
+    // Move fingers forward
+    for (int i = 0; i < 5; i++) {
+        fingerPairs[i][0].retract();
+        fingerPairs[i][1].retract();
         delay(350);
-        fingers[i].extend();
+        fingerPairs[i][0].extend();
+        fingerPairs[i][1].extend();
     }
-    for (int i = 6; i > 0; i--) {
-        fingers[i].retract();
+
+    // Move fingers backward
+    for (int i = 4; i >= 0; i--) {
+        fingerPairs[i][0].retract();
+        fingerPairs[i][1].retract();
         delay(350);
-        fingers[i].extend();
+        fingerPairs[i][0].extend();
+        fingerPairs[i][1].extend();
     }
+
     delay(1000);
 }
+
 
 void asBinary(int num) {
     if (num > 31) {
