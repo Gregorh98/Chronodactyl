@@ -5,6 +5,9 @@
 #include <WiFiUdp.h>
 #include <Timezone.h>
 
+// WiFi credentials
+const char* ssid     = "";
+const char* password = "";
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC time, no offset here
