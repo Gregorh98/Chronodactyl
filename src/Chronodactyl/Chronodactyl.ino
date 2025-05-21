@@ -4,10 +4,7 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <Timezone.h>
-
-// WiFi credentials
-const char* ssid     = "";
-const char* password = "";
+#include "secrets.h"
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC time, no offset here
@@ -103,7 +100,7 @@ void setup() {
     delay(1000);
     gripping = false;
 
-    WiFi.begin(ssid, password);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
