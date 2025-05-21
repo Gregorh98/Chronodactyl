@@ -1,19 +1,24 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <ESP8266WiFi.h>        // Use <ESP8266WiFi.h> for ESP8266
+#include <ESP8266WiFi.h>      
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Timezone.h>
 
 
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Adjust GMT offset
-
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC time, no offset here
 
 // PCA9685 setup
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40); // Default I2C address
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40); 
 
 #define SERVOMIN  100  // Min pulse length for 0° 
 #define SERVOMAX  650  // Max pulse length for 180°
+
+// UK Timezone with DST rules
+TimeChangeRule BST = {"BST", Last, Sun, Mar, 1, 60};  // British Summer Time = UTC+1 hour
+TimeChangeRule GMT = {"GMT", Last, Sun, Oct, 2, 0};   // Greenwich Mean Time = UTC+0 hour
+Timezone UK(BST, GMT);
 
 class Finger
 {
@@ -103,9 +108,8 @@ void setup() {
     Serial.println("\nConnected to WiFi");
 
     timeClient.begin();
-
+    timeClient.update();
 }
-
 
 // Preset gestures
 void grip() {
@@ -126,7 +130,7 @@ void release() {
     thumb_knuckle.extend();
 }
 
-void quarter(int q)
+void on_quarter(int q)
 {
   grip();
   delay(1000);
@@ -148,7 +152,7 @@ void quarter(int q)
   delay(1000);
 }
 
-void hour() {
+void on_hour() {
     release();
     delay(1000);
 
@@ -182,7 +186,6 @@ void hour() {
     delay(1000);
 }
 
-
 void asBinary(int num) {
     if (num > 31) {
         release();
@@ -201,29 +204,34 @@ void asBinary(int num) {
 void time()
 {
     timeClient.update();
-    Serial.println(timeClient.getFormattedTime());
+    time_t utc = timeClient.getEpochTime();
+    time_t local = UK.toLocal(utc);
 
-    int minutes = timeClient.getMinutes();
-    int seconds = timeClient.getSeconds();
-    int timesToRun = minutes / 15; // Determines how many times to run extend() and grip()
+    int localHour = hour(local);
+    int localMinute = minute(local);
+    int localSecond = second(local);
 
-    if (minutes % 15 == 0 && seconds == 0)
+    Serial.printf("Local time: %02d:%02d:%02d\n", localHour, localMinute, localSecond);
+
+    int timesToRun = localMinute / 15; // Determines how many times to run extend() and grip()
+
+    if (localMinute % 15 == 0 && localSecond == 0)
     {
       if (timesToRun == 0)
       {
         // On the hour
-        hour();
+        on_hour();
       }
       else
       {
         // On quarters of the hour
-        quarter(timesToRun);
+        on_quarter(timesToRun);
       }
       grip();
       delay(1000);
     }
 
-    asBinary(timeClient.getHours());
+    asBinary(localHour);
     delay(1000);
 }
 
