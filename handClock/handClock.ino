@@ -12,8 +12,8 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Adjust GMT offset
 // PCA9685 setup
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40); // Default I2C address
 
-#define SERVOMIN  150  // Min pulse length for 0° 
-#define SERVOMAX  600  // Max pulse length for 180°
+#define SERVOMIN  100  // Min pulse length for 0° 
+#define SERVOMAX  650  // Max pulse length for 180°
 
 class Finger
 {
@@ -24,6 +24,7 @@ class Finger
     int move_min;
     int move_max;
     bool inverted;
+    bool extended;
 
   public:
     Finger(int p, int cd, int od, bool i = false)
@@ -34,6 +35,7 @@ class Finger
       servo_min = 0;
       servo_max = 180;
       inverted = i;
+      extended=true;
     }
 
     uint16_t asServoMap(int val)
@@ -48,22 +50,36 @@ class Finger
 
     void extend()
     {
-      pwm.setPWM(pin, 0, asServoMap(move_min));
+      if (!extended)
+      {
+        pwm.setPWM(pin, 0, asServoMap(move_min));
+        extended = true;
+      }
+      else{
+        pwm.setPWM(pin, 0, 0);
+      }
     }
 
     void retract()
     {
-      pwm.setPWM(pin, 0, asServoMap(move_max));
+      if (extended)
+      {
+        pwm.setPWM(pin, 0, asServoMap(move_max));
+        extended=false;
+      }
+      else{
+        pwm.setPWM(pin, 0, 0);
+      }
     }
 };
 
-Finger thumb_finger(0, 60, 120);
-Finger thumb_knuckle(5, 0, 120, true);
+Finger thumb_finger(0, 0, 110);
+Finger thumb_knuckle(5, 0, 60, true);
 
-Finger index_finger(1, 0, 180);
-Finger middle_finger(2, 0, 180);
-Finger ring_finger(3, 0, 180);
-Finger pinky_finger(4, 0, 180, true);
+Finger index_finger(3, 0, 180);
+Finger middle_finger(1, 0, 180);
+Finger ring_finger(4, 0, 180, true);
+Finger pinky_finger(2, 0, 180, true);
 
 bool gripping;
 
@@ -72,7 +88,7 @@ void setup() {
     Serial.println("Robot Hand Preset Control");
 
     pwm.begin();
-    pwm.setPWMFreq(50);
+    pwm.setPWMFreq(60);
     grip();
     delay(1000);
     release();
@@ -93,7 +109,6 @@ void setup() {
 
 // Preset gestures
 void grip() {
-    Serial.println("Grip activated!");
     index_finger.retract();
     middle_finger.retract();
     ring_finger.retract();
@@ -150,7 +165,7 @@ void hour() {
     for (int i = 0; i < 5; i++) {
         fingerPairs[i][0].retract();
         fingerPairs[i][1].retract();
-        delay(350);
+        delay(200);
         fingerPairs[i][0].extend();
         fingerPairs[i][1].extend();
     }
@@ -159,7 +174,7 @@ void hour() {
     for (int i = 4; i >= 0; i--) {
         fingerPairs[i][0].retract();
         fingerPairs[i][1].retract();
-        delay(350);
+        delay(200);
         fingerPairs[i][0].extend();
         fingerPairs[i][1].extend();
     }
@@ -209,10 +224,17 @@ void time()
     }
 
     asBinary(timeClient.getHours());
+    delay(1000);
+}
 
+void debug() {
+  grip();
+  delay(5000);
+  release();
+  delay(5000);
 }
 
 void loop() {
   time();
-  delay(1000);
+  //debug();
 }
