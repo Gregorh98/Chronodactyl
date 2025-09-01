@@ -15,6 +15,8 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 #define SERVOMIN  100  // Min pulse length for 0° 
 #define SERVOMAX  650  // Max pulse length for 180°
 
+const int animSwitch = D7;  // Animation toggle switch
+
 // UK Timezone with DST rules
 TimeChangeRule BST = {"BST", Last, Sun, Mar, 1, 60};  // British Summer Time = UTC+1 hour
 TimeChangeRule GMT = {"GMT", Last, Sun, Oct, 2, 0};   // Greenwich Mean Time = UTC+0 hour
@@ -90,7 +92,9 @@ bool gripping;
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("Robot Hand Preset Control");
+    Serial.println("Chronodactly Start");
+
+    pinMode(animSwitch, INPUT_PULLUP);
 
     pwm.begin();
     pwm.setPWMFreq(60);
@@ -215,7 +219,7 @@ void time()
 
     int timesToRun = localMinute / 15; // Determines how many times to run extend() and grip()
 
-    if (localMinute % 15 == 0 && localSecond == 0)
+    if (localMinute % 15 == 0 && localSecond == 0 && digitalRead(animSwitch) == LOW)
     {
       if (timesToRun == 0)
       {
@@ -240,6 +244,7 @@ void debug() {
   delay(5000);
   release();
   delay(5000);
+  Serial.println("ANIMATION SWITCH: " + digitalRead(animSwitch));
 }
 
 void loop() {
