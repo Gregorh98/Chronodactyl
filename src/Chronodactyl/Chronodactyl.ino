@@ -12,6 +12,8 @@ RTC_DS3231 rtc;
 const int animSwitch = 11;
 const int dstSwitch = 12;
 
+bool lastAnimSwitchState = HIGH;
+
 // ================= Finger Class =================
 
 class Finger
@@ -101,16 +103,17 @@ void setup() {
     while (1);
   }
 
-  if (rtc.lostPower()) {
-    Serial.println("RTC lost power, setting time to compile time");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  }
+  Serial.println("RTC lost power, setting time to compile time");
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
 
   grip();
   delay(1000);
   release();
   delay(1000);
   gripping = false;
+
+  lastAnimSwitchState = digitalRead(animSwitch);
 }
 
 // ================= Gestures =================
@@ -218,7 +221,9 @@ void updateTime()
   int minuteVal = now.minute();
   int secondVal = now.second();
 
-  //Serial.println("Local time: %02d:%02d:%02d\n", hourVal, minuteVal, secondVal);
+  char timeBuffer[20];
+  sprintf(timeBuffer, "Local time: %02d:%02d:%02d", hourVal, minuteVal, secondVal);
+  Serial.println(timeBuffer);
 
   int timesToRun = minuteVal / 15;
 
@@ -240,5 +245,21 @@ void updateTime()
 // ================= Loop =================
 
 void loop() {
+  bool currentAnimSwitchState = digitalRead(animSwitch);
+
+  // Detect switch turned ON
+  if (lastAnimSwitchState == HIGH && currentAnimSwitchState == LOW) {
+    Serial.println("Animations turned ON, playing startup animation");
+    // Play a quick "blink" animation to show it's active
+    for (int i = 0; i < 2; i++) {
+      release();
+      delay(500);
+      grip();
+      delay(500);
+    }
+  }
+
+  lastAnimSwitchState = currentAnimSwitchState; // update state
+
   updateTime();
 }
