@@ -1,26 +1,18 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <ESP8266WiFi.h>      
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-#include <Timezone.h>
-#include "secrets.h"
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC time, no offset here
+#include <RTClib.h>
 
 // PCA9685 setup
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40); 
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+RTC_DS3231 rtc;
 
-#define SERVOMIN  100  // Min pulse length for 0° 
-#define SERVOMAX  650  // Max pulse length for 180°
+#define SERVOMIN  100
+#define SERVOMAX  650
 
-const int animSwitch = D7;  // Animation toggle switch
+const int animSwitch = 11;
+const int dstSwitch = 12;
 
-// UK Timezone with DST rules
-TimeChangeRule BST = {"BST", Last, Sun, Mar, 1, 60};  // British Summer Time = UTC+1 hour
-TimeChangeRule GMT = {"GMT", Last, Sun, Oct, 2, 0};   // Greenwich Mean Time = UTC+0 hour
-Timezone UK(BST, GMT);
+// ================= Finger Class =================
 
 class Finger
 {
@@ -42,17 +34,15 @@ class Finger
       servo_min = 0;
       servo_max = 180;
       inverted = i;
-      extended=true;
+      extended = true;
     }
 
     uint16_t asServoMap(int val)
     {
-      if (inverted) {
+      if (inverted)
         val = servo_max - val;
-      }
 
-      uint16_t pulse = map(val, servo_min, servo_max, SERVOMIN, SERVOMAX);
-      return pulse;
+      return map(val, servo_min, servo_max, SERVOMIN, SERVOMAX);
     }
 
     void extend()
@@ -62,7 +52,8 @@ class Finger
         pwm.setPWM(pin, 0, asServoMap(move_min));
         extended = true;
       }
-      else{
+      else
+      {
         pwm.setPWM(pin, 0, 0);
       }
     }
@@ -72,13 +63,16 @@ class Finger
       if (extended)
       {
         pwm.setPWM(pin, 0, asServoMap(move_max));
-        extended=false;
+        extended = false;
       }
-      else{
+      else
+      {
         pwm.setPWM(pin, 0, 0);
       }
     }
 };
+
+// ================= Fingers =================
 
 Finger thumb_finger(0, 0, 110);
 Finger thumb_knuckle(5, 0, 60, true);
@@ -90,65 +84,69 @@ Finger pinky_finger(2, 0, 180, true);
 
 bool gripping;
 
+// ================= Setup =================
+
 void setup() {
-    Serial.begin(115200);
-    Serial.println("Chronodactly Start");
+  Serial.begin(115200);
+  Serial.println("Chronodactyl RTC Start");
 
-    pinMode(animSwitch, INPUT_PULLUP);
+  pinMode(animSwitch, INPUT_PULLUP);
+  pinMode(dstSwitch, INPUT_PULLUP);
 
-    pwm.begin();
-    pwm.setPWMFreq(60);
-    grip();
-    delay(1000);
-    release();
-    delay(1000);
-    gripping = false;
+  pwm.begin();
+  pwm.setPWMFreq(60);
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("\nConnected to WiFi");
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1);
+  }
 
-    timeClient.begin();
-    timeClient.update();
+  if (rtc.lostPower()) {
+    Serial.println("RTC lost power, setting time to compile time");
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
+
+  grip();
+  delay(1000);
+  release();
+  delay(1000);
+  gripping = false;
 }
 
-// Preset gestures
+// ================= Gestures =================
+
 void grip() {
-    index_finger.retract();
-    middle_finger.retract();
-    ring_finger.retract();
-    pinky_finger.retract();
-    thumb_finger.retract();
-    thumb_knuckle.retract();
+  index_finger.retract();
+  middle_finger.retract();
+  ring_finger.retract();
+  pinky_finger.retract();
+  thumb_finger.retract();
+  thumb_knuckle.retract();
 }
 
 void release() {
-    index_finger.extend();
-    middle_finger.extend();
-    ring_finger.extend();
-    pinky_finger.extend();
-    thumb_finger.extend();
-    thumb_knuckle.extend();
+  index_finger.extend();
+  middle_finger.extend();
+  ring_finger.extend();
+  pinky_finger.extend();
+  thumb_finger.extend();
+  thumb_knuckle.extend();
 }
 
 void on_quarter(int q)
 {
   grip();
   delay(1000);
+
   index_finger.extend();
   delay(500);
 
-  if (q >= 2)
-  {
+  if (q >= 2) {
     middle_finger.extend();
     delay(500);
   }
-  
-  if (q == 3)
-  {
+
+  if (q == 3) {
     ring_finger.extend();
     delay(500);
   }
@@ -157,97 +155,90 @@ void on_quarter(int q)
 }
 
 void on_hour() {
-    release();
-    delay(1000);
+  release();
+  delay(1000);
 
-    // Array of finger pairs (thumb moves together, others move individually)
-    Finger fingerPairs[][2] = {
-        {thumb_finger, thumb_knuckle},
-        {index_finger, index_finger}, // Single fingers still need a second reference
-        {middle_finger, middle_finger},
-        {ring_finger, ring_finger},
-        {pinky_finger, pinky_finger}
-    };
+  Finger fingerPairs[][2] = {
+    {thumb_finger, thumb_knuckle},
+    {index_finger, index_finger},
+    {middle_finger, middle_finger},
+    {ring_finger, ring_finger},
+    {pinky_finger, pinky_finger}
+  };
 
-    // Move fingers forward
-    for (int i = 0; i < 5; i++) {
-        fingerPairs[i][0].retract();
-        fingerPairs[i][1].retract();
-        delay(200);
-        fingerPairs[i][0].extend();
-        fingerPairs[i][1].extend();
-    }
+  for (int i = 0; i < 5; i++) {
+    fingerPairs[i][0].retract();
+    fingerPairs[i][1].retract();
+    delay(200);
+    fingerPairs[i][0].extend();
+    fingerPairs[i][1].extend();
+  }
 
-    // Move fingers backward
-    for (int i = 4; i >= 0; i--) {
-        fingerPairs[i][0].retract();
-        fingerPairs[i][1].retract();
-        delay(200);
-        fingerPairs[i][0].extend();
-        fingerPairs[i][1].extend();
-    }
+  for (int i = 4; i >= 0; i--) {
+    fingerPairs[i][0].retract();
+    fingerPairs[i][1].retract();
+    delay(200);
+    fingerPairs[i][0].extend();
+    fingerPairs[i][1].extend();
+  }
 
-    delay(1000);
+  delay(1000);
 }
 
 void asBinary(int num) {
-    if (num > 31) {
-        release();
-        return;
-    }
-    
-    // Bitmasking fingers
-    if (num & 0b00001) thumb_finger.extend(); else thumb_finger.retract();
-    if (num & 0b00001) thumb_knuckle.extend(); else thumb_knuckle.retract();
-    if (num & 0b00010) index_finger.extend(); else index_finger.retract();
-    if (num & 0b00100) middle_finger.extend(); else middle_finger.retract();
-    if (num & 0b01000) ring_finger.extend(); else ring_finger.retract();
-    if (num & 0b10000) pinky_finger.extend(); else pinky_finger.retract();
+  if (num > 31) {
+    release();
+    return;
+  }
+
+  // Reverse bit order (pinky becomes LSB)
+  if (num & 0b00001) pinky_finger.extend(); else pinky_finger.retract();
+  if (num & 0b00010) ring_finger.extend();  else ring_finger.retract();
+  if (num & 0b00100) middle_finger.extend(); else middle_finger.retract();
+  if (num & 0b01000) index_finger.extend(); else index_finger.retract();
+  if (num & 0b10000) thumb_finger.extend(); else thumb_finger.retract();
+
+  // Keep thumb knuckle linked to thumb
+  if (num & 0b10000) thumb_knuckle.extend(); else thumb_knuckle.retract();
 }
 
-void time()
+
+// ================= Time Logic =================
+
+void updateTime()
 {
-    timeClient.update();
-    time_t utc = timeClient.getEpochTime();
-    time_t local = UK.toLocal(utc);
+  DateTime now = rtc.now();
 
-    int localHour = hour(local);
-    int localMinute = minute(local);
-    int localSecond = second(local);
+  int hourVal = now.hour();
 
-    Serial.printf("Local time: %02d:%02d:%02d\n", localHour, localMinute, localSecond);
+  if (digitalRead(dstSwitch) == LOW) {  // switch ON
+    hourVal = (hourVal + 1) % 24;
+  }
 
-    int timesToRun = localMinute / 15; // Determines how many times to run extend() and grip()
+  int minuteVal = now.minute();
+  int secondVal = now.second();
 
-    if (localMinute % 15 == 0 && localSecond == 0 && digitalRead(animSwitch) == LOW)
-    {
-      if (timesToRun == 0)
-      {
-        // On the hour
-        on_hour();
-      }
-      else
-      {
-        // On quarters of the hour
-        on_quarter(timesToRun);
-      }
-      grip();
-      delay(1000);
-    }
+  //Serial.println("Local time: %02d:%02d:%02d\n", hourVal, minuteVal, secondVal);
 
-    asBinary(localHour);
+  int timesToRun = minuteVal / 15;
+
+  if (minuteVal % 15 == 0 && secondVal == 0 && digitalRead(animSwitch) == LOW)
+  {
+    if (timesToRun == 0)
+      on_hour();
+    else
+      on_quarter(timesToRun);
+
+    grip();
     delay(1000);
+  }
+
+  asBinary(hourVal);
+  delay(1000);
 }
 
-void debug() {
-  grip();
-  delay(5000);
-  release();
-  delay(5000);
-  Serial.println("ANIMATION SWITCH: " + digitalRead(animSwitch));
-}
+// ================= Loop =================
 
 void loop() {
-  time();
-  //debug();
+  updateTime();
 }
