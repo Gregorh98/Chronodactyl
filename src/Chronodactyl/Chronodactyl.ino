@@ -103,8 +103,9 @@ void setup() {
     while (1);
   }
 
-  Serial.println("RTC lost power, setting time to compile time");
-  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  // Re-enable to set RTC time
+  // Serial.println("Setting RTC time");
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
 
   grip();
