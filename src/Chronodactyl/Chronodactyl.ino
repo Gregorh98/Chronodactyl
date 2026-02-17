@@ -84,8 +84,6 @@ Finger middle_finger(1, 0, 180);
 Finger ring_finger(4, 0, 180, true);
 Finger pinky_finger(2, 0, 180, true);
 
-bool gripping;
-
 // ================= Setup =================
 
 void setup() {
