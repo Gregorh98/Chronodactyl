@@ -14,7 +14,9 @@ const int dstSwitch = 12;
 bool lastAnimSwitchState = HIGH;
 bool lastDstSwitchState = HIGH;
 
-Hand hand;
+int period = 1000;
+
+Hand hand(period);
 
 void setup() {
   Serial.begin(115200);
@@ -34,7 +36,6 @@ void setup() {
 
 unsigned long lastAction = 0;
 int action = 0;
-const unsigned long interval = 1000;  // at least 2 seconds between actions
 
 void loop() {
   unsigned long now = millis();
@@ -44,7 +45,7 @@ void loop() {
   int hourVal = ts_now.hour();
   Serial.println(hourVal);
 
-  if (now - lastAction > interval) {
+  if (now - lastAction > period) {
     lastAction = now;
     hand.asBinary(hourVal);
   }

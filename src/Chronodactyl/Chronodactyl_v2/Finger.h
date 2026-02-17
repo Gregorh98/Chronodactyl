@@ -28,7 +28,7 @@ private:
   bool moving;
 
 public:
-  Finger(int p, int cd, int od, bool i = false) {
+  Finger(int p, int cd, int od, bool i = false, int period=1000) {
     pin = p;
     move_min = cd;
     move_max = od;
@@ -41,7 +41,7 @@ public:
     targetAngle = move_min;
     startAngle = move_min;
 
-    moveDuration = 1000;  // adjust for speed (ms)
+    moveDuration = period;  // adjust for speed (ms)
     moving = false;
   }
 

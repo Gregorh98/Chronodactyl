@@ -6,28 +6,14 @@
 
 class Hand {
 public:
-  Hand()
-    : thumb(0, 0, 110),
-      thumb_knuckle(5, 0, 60, true),
-      index(3, 0, 180),
-      middle(1, 0, 180),
-      ring(4, 0, 180, true),
-      pinky(2, 0, 180, true) {}
+  Hand(int period)
+    : thumb(0, 0, 110, period),
+      thumb_knuckle(5, 0, 60, true, period),
+      index(3, 0, 180, period),
+      middle(1, 0, 180, period),
+      ring(4, 0, 180, true, period),
+      pinky(2, 0, 180, true, period) {}
 
-  void initialise() {
-    unsigned long now = millis();
-    int run_time = 3000;
-    release();
-    Serial.println("starting move");
-    while (millis() < now + run_time) {
-      update();
-    }
-    Serial.println("stopping move");
-  }
-
-  void run() {
-    update();
-  }
 
   void update() {
     thumb.update();
