@@ -41,7 +41,7 @@ public:
     targetAngle = move_min;
     startAngle = move_min;
 
-    moveDuration = 2500;  // adjust for speed (ms)
+    moveDuration = 1000;  // adjust for speed (ms)
     moving = false;
   }
 
@@ -79,7 +79,6 @@ public:
     }
 
     float eased = easeInOut(t);
-    Serial.println(eased);
 
     currentAngle = startAngle + (targetAngle - startAngle) * eased;
 
@@ -87,7 +86,6 @@ public:
       pwm.setPWM(pin, 0, asServoMap(currentAngle));
     }
   }
-
 
   void extend() {
     extended = true;

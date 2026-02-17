@@ -22,33 +22,31 @@ void setup() {
   pinMode(animSwitch, INPUT_PULLUP);
   pinMode(dstSwitch, INPUT_PULLUP);
 
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1)
+      ;  // Stop here if RTC not found
+  }
+
   pwm.begin();
   pwm.setPWMFreq(60);
 }
 
 unsigned long lastAction = 0;
 int action = 0;
-const unsigned long interval = 6000;  // at least 2 seconds between actions
+const unsigned long interval = 1000;  // at least 2 seconds between actions
 
 void loop() {
   unsigned long now = millis();
 
-  // Update all fingers every loop
-  hand.update();
+  DateTime ts_now = rtc.now();
 
-  // Toggle open/close every 2 seconds
+  int hourVal = ts_now.hour();
+  Serial.println(hourVal);
+
   if (now - lastAction > interval) {
     lastAction = now;
-
-    if (action == 0) {
-      hand.grip();
-      action++;
-    } else if (action == 1) {
-      hand.asBinary(12);
-      action++;
-    } else if (action == 2) {
-      hand.release();
-      action=0;
-    }
+    hand.asBinary(hourVal);
   }
+  hand.update();
 }

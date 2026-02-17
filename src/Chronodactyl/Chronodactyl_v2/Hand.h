@@ -6,68 +6,94 @@
 
 class Hand {
 public:
-    Hand()
-        : thumb(0, 0, 110),
-          thumb_knuckle(5, 0, 60, true),
-          index(3, 0, 180),
-          middle(1, 0, 180),
-          ring(4, 0, 180, true),
-          pinky(2, 0, 180, true)
-    {}
+  Hand()
+    : thumb(0, 0, 110),
+      thumb_knuckle(5, 0, 60, true),
+      index(3, 0, 180),
+      middle(1, 0, 180),
+      ring(4, 0, 180, true),
+      pinky(2, 0, 180, true) {}
 
-    void update() {
-        thumb.update();
-        thumb_knuckle.update();
-        index.update();
-        middle.update();
-        ring.update();
-        pinky.update();
+  void initialise() {
+    unsigned long now = millis();
+    int run_time = 3000;
+    release();
+    Serial.println("starting move");
+    while (millis() < now + run_time) {
+      update();
+    }
+    Serial.println("stopping move");
+  }
+
+  void run() {
+    update();
+  }
+
+  void update() {
+    thumb.update();
+    thumb_knuckle.update();
+    index.update();
+    middle.update();
+    ring.update();
+    pinky.update();
+  }
+
+  void grip() {
+    index.retract();
+    middle.retract();
+    ring.retract();
+    pinky.retract();
+    thumb.retract();
+    thumb_knuckle.retract();
+  }
+
+  void release() {
+    index.extend();
+    middle.extend();
+    ring.extend();
+    pinky.extend();
+    thumb.extend();
+    thumb_knuckle.extend();
+  }
+
+  void asBinary(int num) {
+    if (num > 31) {
+      release();
+      return;
     }
 
-    void grip() {
-        index.retract();
-        middle.retract();
-        ring.retract();
-        pinky.retract();
-        thumb.retract();
-        thumb_knuckle.retract();
-    }
+    Serial.println(num & 0b00001);
 
-    void release() {
-        index.extend();
-        middle.extend();
-        ring.extend();
-        pinky.extend();
-        thumb.extend();
-        thumb_knuckle.extend();
+    if (num & 0b00001) pinky.extend();
+    else pinky.retract();
+    if (num & 0b00010) ring.extend();
+    else ring.retract();
+    if (num & 0b00100) middle.extend();
+    else middle.retract();
+    if (num & 0b01000) index.extend();
+    else index.retract();
+    if (num & 0b10000) {
+      thumb.extend();
+      thumb_knuckle.extend();
+    } else {
+      thumb.retract();
+      thumb_knuckle.retract();
     }
+  }
 
-    void asBinary(int num) {
-        if (num > 31) {
-            release();
-            return;
-        }
-
-        if (num & 0b00001) pinky.extend(); else pinky.retract();
-        if (num & 0b00010) ring.extend();  else ring.retract();
-        if (num & 0b00100) middle.extend(); else middle.retract();
-        if (num & 0b01000) index.extend(); else index.retract();
-        if (num & 0b10000) {
-            thumb.extend();
-            thumb_knuckle.extend();
-        } else {
-            thumb.retract();
-            thumb_knuckle.retract();
-        }
-    }
 
 private:
-    Finger thumb;
-    Finger thumb_knuckle;
-    Finger index;
-    Finger middle;
-    Finger ring;
-    Finger pinky;
+  Finger thumb;
+  Finger thumb_knuckle;
+  Finger index;
+  Finger middle;
+  Finger ring;
+  Finger pinky;
+
+  unsigned long waveLastUpdate = 0;
+  int waveStep = 0;
+  bool waveForward = true;
+  const int waveInterval = 150;  // ms between steps
 };
 
 #endif
