@@ -49,7 +49,7 @@ void loop() {
       hourVal += 1;
     }
 
-    Serial.println(hourVal);
+    //Serial.println(hourVal);
 
     if (now - lastAction > period) {
       lastAction = now;

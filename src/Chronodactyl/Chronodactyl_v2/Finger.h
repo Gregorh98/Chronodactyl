@@ -6,7 +6,6 @@
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 
-
 #include <Arduino.h>
 
 class Finger {
@@ -27,8 +26,10 @@ private:
   unsigned long moveDuration;  // total move time in ms
   bool moving;
 
+  const int tolerance = 1;  // angle tolerance to prevent float jitter restarts
+
 public:
-  Finger(int p, int cd, int od, bool i = false, int period=1000) {
+  Finger(int p, int cd, int od, bool i = false, int period = 1000) {
     pin = p;
     move_min = cd;
     move_max = od;
@@ -41,7 +42,7 @@ public:
     targetAngle = move_min;
     startAngle = move_min;
 
-    moveDuration = period;  // adjust for speed (ms)
+    moveDuration = period;
     moving = false;
   }
 
@@ -54,12 +55,21 @@ public:
 
   float easeInOut(float t) {
     if (t < 0.5)
-      return 4 * t * t * t;  // slow start
+      return 4 * t * t * t;
     else
-      return 1 - pow(-2 * t + 2, 3) / 2;  // slow finish
+      return 1 - pow(-2 * t + 2, 3) / 2;
   }
 
   void startMove(int newTarget) {
+
+    // Already at target and not moving
+    if (!moving && abs(currentAngle - newTarget) <= tolerance)
+      return;
+
+    // Already moving to same target
+    if (moving && targetAngle == newTarget)
+      return;
+
     startAngle = currentAngle;
     targetAngle = newTarget;
     moveStartTime = millis();
@@ -67,32 +77,35 @@ public:
   }
 
   void update() {
-    if (!moving) return;
-
-    unsigned long now = millis();
-    float elapsed = now - moveStartTime;
-
-    float t = elapsed / moveDuration;
-    if (t >= 1.0) {
-      moving = false;
+    if (!moving) {
       pwm.setPWM(pin, 0, 0);
       return;
     }
 
-    if (moving) {
-      float eased = easeInOut(t);
+    unsigned long now = millis();
+    float elapsed = now - moveStartTime;
+    float t = (float)elapsed / moveDuration;
 
-      currentAngle = startAngle + (targetAngle - startAngle) * eased;
+    if (t >= 1.0f) {
+      currentAngle = targetAngle;
       pwm.setPWM(pin, 0, asServoMap(currentAngle));
+      moving = false;
+      return;
     }
+
+    float eased = easeInOut(t);
+    currentAngle = startAngle + (targetAngle - startAngle) * eased;
+    pwm.setPWM(pin, 0, asServoMap(currentAngle));
   }
 
   void extend() {
+    if (extended) return;
     extended = true;
     startMove(move_min);
   }
 
   void retract() {
+    if (!extended) return;
     extended = false;
     startMove(move_max);
   }
