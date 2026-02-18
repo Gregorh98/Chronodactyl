@@ -7,10 +7,10 @@
 class Hand {
 public:
   Hand(int period)
-    : thumb(0, 0, 110, period),
+    : thumb(0, 0, 110, false, period),
       thumb_knuckle(5, 0, 60, true, period),
-      index(3, 0, 180, period),
-      middle(1, 0, 180, period),
+      index(3, 0, 180, false, period),
+      middle(1, 0, 180, false, period),
       ring(4, 0, 180, true, period),
       pinky(2, 0, 180, true, period) {}
 
