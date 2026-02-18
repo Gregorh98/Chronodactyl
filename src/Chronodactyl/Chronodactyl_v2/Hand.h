@@ -42,6 +42,43 @@ public:
     thumb_knuckle.extend();
   }
 
+  void show_15() {
+    index.extend();
+    middle.retract();
+    ring.retract();
+    pinky.retract();
+    thumb.retract();
+    thumb_knuckle.retract();
+  }
+
+  void show_30() {
+    index.extend();
+    middle.extend();
+    ring.retract();
+    pinky.retract();
+    thumb.retract();
+    thumb_knuckle.retract();
+  }
+
+  void show_45() {
+    index.extend();
+    middle.extend();
+    ring.extend();
+    pinky.retract();
+    thumb.retract();
+    thumb_knuckle.retract();
+  }
+
+  void show_0() {
+    index.extend();
+    middle.extend();
+    ring.extend();
+    pinky.extend();
+    thumb.retract();
+    thumb_knuckle.retract();
+  }
+
+
   void asBinary(int num) {
     if (num > 31) {
       release();
