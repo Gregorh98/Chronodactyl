@@ -38,16 +38,22 @@ unsigned long lastAction = 0;
 int action = 0;
 
 void loop() {
-  unsigned long now = millis();
+    unsigned long now = millis();
 
-  DateTime ts_now = rtc.now();
+    DateTime ts_now = rtc.now();
 
-  int hourVal = ts_now.hour();
-  Serial.println(hourVal);
+    int hourVal = ts_now.hour();
 
-  if (now - lastAction > period) {
-    lastAction = now;
-    hand.asBinary(hourVal);
-  }
-  hand.update();
+    if (digitalRead(dstSwitch) == LOW)
+    {
+      hourVal += 1;
+    }
+
+    Serial.println(hourVal);
+
+    if (now - lastAction > period) {
+      lastAction = now;
+      hand.asBinary(hourVal);
+    }
+    hand.update();
 }

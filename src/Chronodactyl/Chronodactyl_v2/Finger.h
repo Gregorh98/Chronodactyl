@@ -76,13 +76,13 @@ public:
     if (t >= 1.0) {
       moving = false;
       pwm.setPWM(pin, 0, 0);
+      return;
     }
 
-    float eased = easeInOut(t);
-
-    currentAngle = startAngle + (targetAngle - startAngle) * eased;
-
     if (moving) {
+      float eased = easeInOut(t);
+
+      currentAngle = startAngle + (targetAngle - startAngle) * eased;
       pwm.setPWM(pin, 0, asServoMap(currentAngle));
     }
   }
