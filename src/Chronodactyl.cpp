@@ -86,37 +86,6 @@ Finger pinky_finger(2, 0, 180, true);
 
 bool gripping;
 
-// ================= Setup =================
-
-void setup() {
-  Serial.begin(115200);
-  Serial.println("Chronodactyl RTC Start");
-
-  pinMode(animSwitch, INPUT_PULLUP);
-  pinMode(dstSwitch, INPUT_PULLUP);
-
-  pwm.begin();
-  pwm.setPWMFreq(60);
-
-  if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    while (1);
-  }
-
-  // Re-enable to set RTC time
-  // Serial.println("Setting RTC time");
-  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-
-
-  grip();
-  delay(1000);
-  release();
-  delay(1000);
-  gripping = false;
-
-  lastAnimSwitchState = digitalRead(animSwitch);
-}
-
 // ================= Gestures =================
 
 void grip() {
@@ -205,6 +174,39 @@ void asBinary(int num) {
   // Keep thumb knuckle linked to thumb
   if (num & 0b10000) thumb_knuckle.extend(); else thumb_knuckle.retract();
 }
+
+
+// ================= Setup =================
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Chronodactyl RTC Start");
+
+  pinMode(animSwitch, INPUT_PULLUP);
+  pinMode(dstSwitch, INPUT_PULLUP);
+
+  pwm.begin();
+  pwm.setPWMFreq(60);
+
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    while (1);
+  }
+
+  // Re-enable to set RTC time
+  // Serial.println("Setting RTC time");
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+
+  grip();
+  delay(1000);
+  release();
+  delay(1000);
+  gripping = false;
+
+  lastAnimSwitchState = digitalRead(animSwitch);
+}
+
 
 
 // ================= Time Logic =================
