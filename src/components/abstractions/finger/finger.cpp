@@ -49,6 +49,9 @@ void Finger::start_move(uint8_t target_deg)
     if (_state == MOVING && _target_deg == target_deg)
         return;
 
+    if (_state == IDLE && abs(_current_deg - target_deg) <= _tolerance)
+        return;
+
     _start_deg = _current_deg;
     _target_deg = target_deg;
     _move_start_time = millis();
@@ -57,15 +60,20 @@ void Finger::start_move(uint8_t target_deg)
 
 uint16_t Finger::as_servo_map(int val)
 {
-    return map(_is_inverted ? _servo_val_max - val : val, _servo_val_min, _servo_val_max, _servo_val_min, _servo_val_max);
+    if (_is_inverted)
+        val = _move_min_deg + _move_max_deg - val;
+
+    return map(val,
+               _move_min_deg, _move_max_deg,
+               _servo_val_min, _servo_val_max);
 }
 
 void Finger::extend()
 {
-    start_move(as_servo_map(_move_min_deg));
+    start_move(_move_min_deg);
 }
 
 void Finger::retract()
 {
-    start_move(as_servo_map(_move_max_deg));
+    start_move(_move_max_deg);
 }

@@ -18,16 +18,14 @@ class Hand
     Finger _ring;
     Finger _pinky;
 
-
-    void _grip();
-    void _release();
-
   public:
-    Hand(uint8_t controller_address) : _controller(controller_address), _move_period(2000), _thumb(_controller, 0, 0, 110, false, _move_period), _thumb_knuckle(_controller, 5, 0, 60, true, _move_period), _index(_controller, 3, 0, 180, false, _move_period), _middle(_controller, 1, 0, 180, false, _move_period), _ring(_controller, 4, 0, 180, true, _move_period), _pinky(_controller, 5, 0, 180, true, _move_period) {};
+    Hand(uint8_t controller_address) : _controller(controller_address), _move_period(2000), _thumb(_controller, 0, 0, 110, false, _move_period), _thumb_knuckle(_controller, 5, 0, 60, true, _move_period), _index(_controller, 3, 0, 180, false, _move_period), _middle(_controller, 1, 0, 180, false, _move_period), _ring(_controller, 4, 0, 180, true, _move_period), _pinky(_controller, 2, 0, 180, true, _move_period) {};
 
     void init();
     void update();
-    
+
+    void grip();
+    void release();
     void show_binary(uint8_t val);
 
 };

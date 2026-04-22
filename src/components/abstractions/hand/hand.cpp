@@ -16,7 +16,7 @@ void Hand::update()
     _pinky.update();
 }
 
-void Hand::_release()
+void Hand::release()
 {
   _thumb.extend();
   _thumb_knuckle.extend();
@@ -26,7 +26,7 @@ void Hand::_release()
   _pinky.extend();
 }
 
-void Hand::_grip()
+void Hand::grip()
 {
   _thumb.retract();
   _thumb_knuckle.retract();
@@ -38,7 +38,7 @@ void Hand::_grip()
 
 void Hand::show_binary(uint8_t num) {
   if (num > 31) {
-    _release();
+    release();
     return;
   }
 

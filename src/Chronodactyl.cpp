@@ -4,6 +4,11 @@
 #include "components/abstractions/hand/hand.h"
 #include "components/hardware/switch/switch.h"
 
+// Initialisation Variables
+bool is_new = true;
+long start_time;
+
+
 // Hardware Instances
 RTC_DS3231 _rtc;
 Switch animation_switch = Switch(11);
@@ -22,6 +27,8 @@ void update_time()
 {
   // Every hour on the hour, update the hand to show the current time in binary (5 bits for hours, 0-23)
   DateTime now = _rtc.now();
+  Serial.print("Current time: ");
+  Serial.println(now.timestamp());
 
   int8_t hour_value = now.hour();
 
@@ -32,9 +39,7 @@ void update_time()
   int8_t minute_value = now.minute();
   //int8_t second_value = now.second();
 
-  if (minute_value == 0) {
-    hand.show_binary(hour_value);
-  }
+  hand.show_binary(hour_value);
 }
 
 
@@ -59,8 +64,11 @@ void setup() {
 
 // ================= Loop =================
 void loop() {
-  animation_switch.update();
-  dst_switch.update();
-  update_time();
+  // animation_switch.update();
+  // dst_switch.update();
+  // update_time();
+  
+  
+  hand.release();
   hand.update();
 }

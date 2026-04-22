@@ -34,11 +34,11 @@ class Finger
     void start_move(uint8_t target_deg);
 
   public:
-    Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 0, bool inverted = false, int16_t move_period_ms = 2000) :
+    Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 180, bool inverted = false, int16_t move_period_ms = 1000) :
     _servo_controller(controller),
     _pin(pin),
-    _servo_val_min(0),
-    _servo_val_max(180),
+    _servo_val_min(100),
+    _servo_val_max(650),
     _move_min_deg(move_min_deg),
     _move_max_deg(move_max_deg),
     _is_inverted(inverted),
