@@ -1,5 +1,11 @@
 #include "hand.h"
 
+void Hand::init()
+{
+    _controller.begin();
+    _controller.setPWMFreq(60);
+}
+
 void Hand::update()
 {
     _thumb.update();
@@ -10,17 +16,29 @@ void Hand::update()
     _pinky.update();
 }
 
-void Hand::grip()
+void Hand::_release()
 {
+  _thumb.extend();
+  _thumb_knuckle.extend();
+  _index.extend();
+  _middle.extend();
+  _ring.extend();
+  _pinky.extend();
 }
 
-void Hand::release()
+void Hand::_grip()
 {
+  _thumb.retract();
+  _thumb_knuckle.retract();
+  _index.retract();
+  _middle.retract();
+  _ring.retract();
+  _pinky.retract();
 }
 
 void Hand::show_binary(uint8_t num) {
   if (num > 31) {
-    release();
+    _release();
     return;
   }
 
@@ -34,3 +52,4 @@ void Hand::show_binary(uint8_t num) {
   // Keep thumb knuckle linked to thumb
   if (num & 0b10000) _thumb_knuckle.extend(); else _thumb_knuckle.retract();
 }
+

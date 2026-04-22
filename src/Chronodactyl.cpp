@@ -1,104 +1,64 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <RTClib.h>
-#include "components/virtual/hand/hand.h"
+#include "components/abstractions/hand/hand.h"
+#include "components/hardware/switch/switch.h"
 
-// PCA9685 setup
-Adafruit_PWMServoDriver servo_controller = Adafruit_PWMServoDriver(0x40);
-RTC_DS3231 rtc;
+// Hardware Instances
+RTC_DS3231 _rtc;
+Switch animation_switch = Switch(11);
+Switch dst_switch = Switch(12);
 
+// Constants
 #define SERVOMIN  100
 #define SERVOMAX  650
+#define SERVO_CONTROLLER_ADDRESS 0x40
 
-int16_t period = 2000;
+// Abstractions
+Hand hand = Hand(SERVO_CONTROLLER_ADDRESS);
 
-const int animSwitch = 11;
-const int dstSwitch = 12;
+// ================= Methods =================
+void updateTime()
+{
+  DateTime now = _rtc.now();
 
-bool lastAnimSwitchState = HIGH;
+  int hourVal = now.hour();
 
-Hand hand = Hand(servo_controller);
+  if (dst_switch.current_state == LOW) {  // switch ON
+    hourVal = (hourVal + 1) % 24;
+  }
 
-// ================= Gestures =================
+  //int minuteVal = now.minute(); // TODO: Use this for animations later on
+  int secondVal = now.second();
 
-void grip() {
-  hand.grip();
+  if (secondVal == 0) {
+    hand.show_binary(hourVal);
+  }
 }
 
-void release() {
-  hand.release();
-}
 
 // ================= Setup =================
-
 void setup() {
   Serial.begin(115200);
   Serial.println("Chronodactyl RTC Start");
 
-  pinMode(animSwitch, INPUT_PULLUP);
-  pinMode(dstSwitch, INPUT_PULLUP);
+  dst_switch.init();
+  animation_switch.init();
+  hand.init();
 
-  servo_controller.begin();
-  servo_controller.setPWMFreq(60);
-
-  if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    while (1);
+  while (!_rtc.begin()) {
+    Serial.println("RTC not found, retrying...");
+    delay(1000);
   }
 
   // Re-enable to set RTC time
   // Serial.println("Setting RTC time");
-  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-
-
-  lastAnimSwitchState = digitalRead(animSwitch);
-}
-
-
-
-// ================= Time Logic =================
-
-void updateTime()
-{
-  DateTime now = rtc.now();
-
-  int hourVal = now.hour();
-
-  if (digitalRead(dstSwitch) == LOW) {  // switch ON
-    hourVal = (hourVal + 1) % 24;
-  }
-
-  int minuteVal = now.minute();
-  int secondVal = now.second();
-
-  char timeBuffer[20];
-  sprintf(timeBuffer, "Local time: %02d:%02d:%02d", hourVal, minuteVal, secondVal);
-  Serial.println(timeBuffer);
-
-  int timesToRun = minuteVal / 15;
-
-  hand.show_binary(hourVal);
-  delay(1000);
+  // _rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 }
 
 // ================= Loop =================
-
 void loop() {
-  bool currentAnimSwitchState = digitalRead(animSwitch);
-
-  // Detect switch turned ON
-  if (lastAnimSwitchState == HIGH && currentAnimSwitchState == LOW) {
-    Serial.println("Animations turned ON, playing startup animation");
-    // Play a quick "blink" animation to show it's active
-    for (int i = 0; i < 2; i++) {
-      release();
-      delay(500);
-      grip();
-      delay(500);
-    }
-  }
-
-  lastAnimSwitchState = currentAnimSwitchState; // update state
-
-  updateTime();
+  animation_switch.update();
+  dst_switch.update();
+  hand.update();
 }
