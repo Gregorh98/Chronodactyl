@@ -5,9 +5,7 @@
 #include "components/hardware/switch/switch.h"
 
 // Initialisation Variables
-bool is_new = true;
 long start_time;
-
 
 // Hardware Instances
 RTC_DS3231 _rtc;
@@ -65,12 +63,12 @@ void setup() {
 
 // ================= Loop =================
 void loop() {
+  // On first run, grip all fingers to set a known starting position, then release after 2 seconds
   if (millis() - start_time <= 2000) {
     hand.grip();
     hand.update();
     return;
   }
-
 
   // animation_switch.update();
   dst_switch.update();
