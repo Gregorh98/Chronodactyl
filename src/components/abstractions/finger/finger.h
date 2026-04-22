@@ -44,10 +44,14 @@ class Finger
     _is_inverted(inverted),
     _is_extended(true),
     _move_period_ms(move_period_ms),
+    _move_start_time(0),
     _start_deg(0),
     _current_deg(0),
     _target_deg(0),
-    _speed(0) {}
+    _speed(0),
+    _tolerance(1),
+    _state(IDLE)
+    {}
 
     void update();
 
