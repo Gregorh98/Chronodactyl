@@ -17,22 +17,23 @@ Switch dst_switch = Switch(12);
 // Abstractions
 Hand hand = Hand(SERVO_CONTROLLER_ADDRESS);
 
-// ================= Methods =================
-void updateTime()
+// ================= Functions =================
+void update_time()
 {
+  // Every hour on the hour, update the hand to show the current time in binary (5 bits for hours, 0-23)
   DateTime now = _rtc.now();
 
-  int hourVal = now.hour();
+  int8_t hour_value = now.hour();
 
   if (dst_switch.current_state == LOW) {  // switch ON
-    hourVal = (hourVal + 1) % 24;
+    hour_value = (hour_value + 1) % 24;
   }
 
-  //int minuteVal = now.minute(); // TODO: Use this for animations later on
-  int secondVal = now.second();
+  int8_t minute_value = now.minute();
+  //int8_t second_value = now.second();
 
-  if (secondVal == 0) {
-    hand.show_binary(hourVal);
+  if (minute_value == 0) {
+    hand.show_binary(hour_value);
   }
 }
 
@@ -60,5 +61,6 @@ void setup() {
 void loop() {
   animation_switch.update();
   dst_switch.update();
+  update_time();
   hand.update();
 }

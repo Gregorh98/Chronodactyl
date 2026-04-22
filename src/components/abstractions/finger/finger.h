@@ -15,6 +15,7 @@ class Finger
     bool _is_inverted;
     bool _is_extended;
     int16_t _move_period_ms;
+    unsigned long _move_start_time; // Time when movement started
 
     uint8_t _start_deg;
     uint8_t _current_deg;
@@ -30,6 +31,7 @@ class Finger
     FingerState _state;
 
     uint8_t _eased_next_position();
+    void start_move(uint8_t target_deg);
 
   public:
     Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 0, bool inverted = false, int16_t move_period_ms = 2000) :
