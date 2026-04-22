@@ -1,22 +1,58 @@
+# ifndef FINGER_H
+# define FINGER_H
+
 #include <Adafruit_PWMServoDriver.h>
 
 class Finger
 {
   private:
-    Adafruit_PWMServoDriver _servo_controller;
+    Adafruit_PWMServoDriver& _servo_controller;
     int8_t _pin;
-    int16_t _servo_min;
-    int16_t _servo_max;
-    int16_t _move_min;
-    int16_t _move_max;
-    bool _inverted;
-    bool _extended;
+    int16_t _servo_val_min;
+    int16_t _servo_val_max;
+    uint8_t _move_min_deg;
+    uint8_t _move_max_deg;
+    bool _is_inverted;
+    bool _is_extended;
+    int16_t _move_period_ms;
+
+    uint8_t _start_deg;
+    uint8_t _current_deg;
+    uint8_t _target_deg;
+    uint8_t _speed;
+    uint8_t _tolerance = 1;
+
+    enum FingerState {
+      IDLE,
+      MOVING
+    };
+
+    FingerState _state;
+
+    uint8_t _eased_next_position();
 
   public:
-    Finger(Adafruit_PWMServoDriver controller = Adafruit_PWMServoDriver(), int p = 0, int cd = 0, int od = 0, bool i = false) :
-    _servo_controller(controller), _pin(p), _servo_min(0), _servo_max(180), _move_min(cd), _move_max(od), _inverted(i), _extended(true) {}
+    Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 0, bool inverted = false, int16_t move_period_ms = 2000) :
+    _servo_controller(controller),
+    _pin(pin),
+    _servo_val_min(0),
+    _servo_val_max(180),
+    _move_min_deg(move_min_deg),
+    _move_max_deg(move_max_deg),
+    _is_inverted(inverted),
+    _is_extended(true),
+    _move_period_ms(move_period_ms),
+    _start_deg(0),
+    _current_deg(0),
+    _target_deg(0),
+    _speed(0) {}
+
+    void update();
 
     uint16_t as_servo_map(int val);
     void extend();
     void retract();
+    
 };
+
+# endif
