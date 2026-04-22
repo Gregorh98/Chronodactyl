@@ -47,6 +47,7 @@ void update_time()
 void setup() {
   Serial.begin(115200);
   Serial.println("Chronodactyl RTC Start");
+  start_time = millis();
 
   dst_switch.init();
   animation_switch.init();
@@ -64,11 +65,15 @@ void setup() {
 
 // ================= Loop =================
 void loop() {
+  if (millis() - start_time <= 2000) {
+    hand.grip();
+    hand.update();
+    return;
+  }
+
+
   // animation_switch.update();
-  // dst_switch.update();
-  // update_time();
-  
-  
-  hand.release();
+  dst_switch.update();
+  update_time();
   hand.update();
 }
