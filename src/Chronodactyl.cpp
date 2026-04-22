@@ -16,63 +16,7 @@ bool lastAnimSwitchState = HIGH;
 
 // ================= Finger Class =================
 
-class Finger
-{
-  private:
-    int pin;
-    int servo_min;
-    int servo_max;
-    int move_min;
-    int move_max;
-    bool inverted;
-    bool extended;
 
-  public:
-    Finger(int p, int cd, int od, bool i = false)
-    {
-      pin = p;
-      move_min = cd;
-      move_max = od;
-      servo_min = 0;
-      servo_max = 180;
-      inverted = i;
-      extended = true;
-    }
-
-    uint16_t asServoMap(int val)
-    {
-      if (inverted)
-        val = servo_max - val;
-
-      return map(val, servo_min, servo_max, SERVOMIN, SERVOMAX);
-    }
-
-    void extend()
-    {
-      if (!extended)
-      {
-        pwm.setPWM(pin, 0, asServoMap(move_min));
-        extended = true;
-      }
-      else
-      {
-        pwm.setPWM(pin, 0, 0);
-      }
-    }
-
-    void retract()
-    {
-      if (extended)
-      {
-        pwm.setPWM(pin, 0, asServoMap(move_max));
-        extended = false;
-      }
-      else
-      {
-        pwm.setPWM(pin, 0, 0);
-      }
-    }
-};
 
 // ================= Fingers =================
 
