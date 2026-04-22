@@ -6,6 +6,7 @@
 
 // Initialisation Variables
 long start_time;
+bool reset_rtc = false;
 
 // Hardware Instances
 RTC_DS3231 _rtc;
@@ -56,9 +57,10 @@ void setup() {
     delay(1000);
   }
 
-  // Re-enable to set RTC time
-  // Serial.println("Setting RTC time");
-  // _rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  if(reset_rtc) {
+    Serial.println("Resetting RTC time to compile time");
+    _rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
 }
 
 // ================= Loop =================
