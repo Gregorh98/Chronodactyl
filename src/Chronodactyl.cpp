@@ -26,14 +26,12 @@ void update_time()
 
   int8_t hour_value = now.hour();
 
-  if (dst_switch.current_state == LOW) {  // switch ON
+  if (dst_switch.current_state) {
     hour_value = (hour_value + 1) % 24;
   }
 
-  //int8_t minute_value = now.minute();
-  //int8_t second_value = now.second();
-
-  hand.show_binary(hour_value);
+  int8_t minute_value = now.minute();
+  int8_t second_value = now.second();
 }
 
 

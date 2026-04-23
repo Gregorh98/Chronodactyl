@@ -3,13 +3,13 @@
 void Switch::init()
 {
     pinMode(_pin, INPUT_PULLUP);
-    current_state = digitalRead(_pin);
+    current_state = digitalRead(_pin) == LOW;
     just_changed = false;
 }
 
 void Switch::update()
 {
-    bool new_state = digitalRead(_pin);
+    bool new_state = digitalRead(_pin) == LOW;
     just_changed = (new_state != current_state);
     current_state = new_state;
 }
