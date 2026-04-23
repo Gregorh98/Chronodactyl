@@ -3,20 +3,15 @@
 #include <RTClib.h>
 #include "components/abstractions/hand/hand.h"
 #include "components/hardware/switch/switch.h"
+#include "config.h"
 
 // Initialisation Variables
 long start_time;
-bool reset_rtc = false;
 
 // Hardware Instances
 RTC_DS3231 _rtc;
-Switch animation_switch = Switch(11);
-Switch dst_switch = Switch(12);
-
-// Constants
-#define SERVOMIN  100
-#define SERVOMAX  650
-#define SERVO_CONTROLLER_ADDRESS 0x40
+Switch animation_switch = Switch(PIN_SWITCH_ANIMATION);
+Switch dst_switch = Switch(PIN_SWITCH_DST);
 
 // Abstractions
 Hand hand = Hand(SERVO_CONTROLLER_ADDRESS);
@@ -57,7 +52,7 @@ void setup() {
     delay(1000);
   }
 
-  if(reset_rtc) {
+  if(RESET_RTC) {
     Serial.println("Resetting RTC time to compile time");
     _rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
@@ -66,7 +61,7 @@ void setup() {
 // ================= Loop =================
 void loop() {
   // On first run, grip all fingers to set a known starting position, then release after 2 seconds
-  if (millis() - start_time <= 2000) {
+  if (millis() - start_time <= FINGER_MOVE_PERIOD_MS) {
     hand.grip();
     hand.update();
     return;

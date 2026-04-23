@@ -4,6 +4,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <components/abstractions/finger/finger.h>
 #include <RTClib.h>
+#include "config.h"
 
 class Hand
 {
@@ -19,7 +20,7 @@ class Hand
     Finger _pinky;
 
   public:
-    Hand(uint8_t controller_address) : _controller(controller_address), _move_period(2000), _thumb(_controller, 0, 0, 110, false, _move_period), _thumb_knuckle(_controller, 5, 0, 60, true, _move_period), _index(_controller, 3, 0, 180, false, _move_period), _middle(_controller, 1, 0, 180, false, _move_period), _ring(_controller, 4, 0, 180, true, _move_period), _pinky(_controller, 2, 0, 180, true, _move_period) {};
+    Hand(uint8_t controller_address) : _controller(controller_address), _move_period(FINGER_MOVE_PERIOD_MS), _thumb(_controller, PIN_SERVO_THUMB, 0, 110, false, _move_period), _thumb_knuckle(_controller, PIN_SERVO_THUMB_KNUCKLE, 0, 60, true, _move_period), _index(_controller, PIN_SERVO_INDEX, 0, 180, false, _move_period), _middle(_controller, PIN_SERVO_MIDDLE, 0, 180, false, _move_period), _ring(_controller, PIN_SERVO_RING, 0, 180, true, _move_period), _pinky(_controller, PIN_SERVO_PINKY, 0, 180, true, _move_period) {};
 
     void init();
     void update();

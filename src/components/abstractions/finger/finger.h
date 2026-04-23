@@ -2,6 +2,7 @@
 # define FINGER_H
 
 #include <Adafruit_PWMServoDriver.h>
+#include "config.h"
 
 class Finger
 {
@@ -34,11 +35,11 @@ class Finger
     void start_move(uint8_t target_deg);
 
   public:
-    Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 180, bool inverted = false, int16_t move_period_ms = 1000) :
+    Finger(Adafruit_PWMServoDriver& controller, int pin = 0, int move_min_deg = 0, int move_max_deg = 180, bool inverted = false, int16_t move_period_ms = FINGER_MOVE_PERIOD_MS) :
     _servo_controller(controller),
     _pin(pin),
-    _servo_val_min(100),
-    _servo_val_max(650),
+    _servo_val_min(SERVO_MIN),
+    _servo_val_max(SERVO_MAX),
     _move_min_deg(move_min_deg),
     _move_max_deg(move_max_deg),
     _is_inverted(inverted),
