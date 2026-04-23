@@ -59,15 +59,34 @@ void Hand::show_animation(uint8_t minute_val)
   {
   case 0:
     // On Hour
+    release();
     break;
   case 1:
     // Quarter past
+    _index.extend();
+    _thumb_knuckle.retract();
+    _thumb.retract();
+    _middle.retract();
+    _ring.retract();
+    _pinky.retract();
     break;
   case 2:
     // Half past
+    _index.extend();
+    _middle.extend();
+    _thumb_knuckle.retract();
+    _thumb.retract();
+    _ring.retract();
+    _pinky.retract();
     break;
   case 3:
     // Quarter to
+    _index.extend();
+    _middle.extend();
+    _ring.extend();
+    _thumb_knuckle.retract();
+    _thumb.retract();
+    _pinky.retract();
     break;
   default:
     break;
