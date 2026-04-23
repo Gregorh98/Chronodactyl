@@ -60,7 +60,7 @@ void setup() {
 
 // ================= Loop =================
 void loop() {
-  // On first run, grip all fingers to set a known starting position, then release after 2 seconds
+  // On first run, grip all fingers to set a known starting position
   if (millis() - start_time <= FINGER_MOVE_PERIOD_MS) {
     hand.grip();
     hand.update();
