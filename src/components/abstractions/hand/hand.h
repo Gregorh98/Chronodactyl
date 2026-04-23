@@ -28,6 +28,7 @@ class Hand
     void grip();
     void release();
     void show_binary(uint8_t val);
+    void show_animation(uint8_t minute_val);
 
 };
 

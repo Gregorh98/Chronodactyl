@@ -6,7 +6,9 @@
 #include "config.h"
 
 // Initialisation Variables
-long start_time;
+unsigned long start_time;
+unsigned long animation_start_millis;
+int8_t last_second_value = -1;
 
 // Hardware Instances
 RTC_DS3231 _rtc;
@@ -17,7 +19,7 @@ Switch dst_switch = Switch(PIN_SWITCH_DST);
 Hand hand = Hand(SERVO_CONTROLLER_ADDRESS);
 
 // ================= Functions =================
-void update_time()
+void update()
 {
   // Every hour on the hour, update the hand to show the current time in binary (5 bits for hours, 0-23)
   DateTime now = _rtc.now();
@@ -26,17 +28,46 @@ void update_time()
 
   int8_t hour_value = now.hour();
 
-  if (dst_switch.current_state) {
+  // Handle DST
+  if (dst_switch.current_state)
+  {
     hour_value = (hour_value + 1) % 24;
   }
 
   int8_t minute_value = now.minute();
   int8_t second_value = now.second();
+
+  // Handle Animation
+  if (animation_switch.current_state)
+  {
+    if (minute_value % 15 == 0)
+    {
+      // Detect transition into second 0
+      if (second_value == 0 && last_second_value != second_value)
+      {
+        animation_start_millis = millis();
+      }
+
+      if (animation_start_millis != 0 && millis() - animation_start_millis < FINGER_MOVE_PERIOD_MS)
+      {
+        hand.show_animation(minute_value);
+        return;
+      }
+
+      if (animation_start_millis != 0 && millis() - animation_start_millis >= FINGER_MOVE_PERIOD_MS)
+      {
+        animation_start_millis = 0;
+      }
+    }
+  }
+
+  hand.show_binary(hour_value);
+  last_second_value = second_value;
 }
 
-
 // ================= Setup =================
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   Serial.println("Chronodactyl RTC Start");
   start_time = millis();
@@ -45,28 +76,32 @@ void setup() {
   animation_switch.init();
   hand.init();
 
-  while (!_rtc.begin()) {
+  while (!_rtc.begin())
+  {
     Serial.println("RTC not found, retrying...");
     delay(1000);
   }
 
-  if(RESET_RTC) {
+  if (RESET_RTC)
+  {
     Serial.println("Resetting RTC time to compile time");
     _rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
 }
 
 // ================= Loop =================
-void loop() {
+void loop()
+{
   // On first run, grip all fingers to set a known starting position
-  if (millis() - start_time <= FINGER_MOVE_PERIOD_MS) {
+  if (millis() - start_time <= FINGER_MOVE_PERIOD_MS)
+  {
     hand.grip();
     hand.update();
     return;
   }
 
-  // animation_switch.update();
+  animation_switch.update();
   dst_switch.update();
-  update_time();
+  update();
   hand.update();
 }

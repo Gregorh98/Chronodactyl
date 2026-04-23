@@ -53,3 +53,23 @@ void Hand::show_binary(uint8_t num) {
   if (num & 0b10000) _thumb_knuckle.extend(); else _thumb_knuckle.retract();
 }
 
+void Hand::show_animation(uint8_t minute_val)
+{
+  switch (minute_val / 15)
+  {
+  case 0:
+    // On Hour
+    break;
+  case 1:
+    // Quarter past
+    break;
+  case 2:
+    // Half past
+    break;
+  case 3:
+    // Quarter to
+    break;
+  default:
+    break;
+  }
+}
